@@ -1,4 +1,3 @@
-import { useBoundingBox } from "@/hooks/useBoundingBox";
 import React from "react";
 import { BoundingBoxOverlay } from "./overlays/BoundingBoxOverlay";
 
