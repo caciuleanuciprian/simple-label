@@ -9,6 +9,13 @@
 		"includes": ["**", "!dist"]
 	},
 	"javascript": { "formatter": { "quoteStyle": "double" } },
+	"css": {
+		"formatter": {
+			"indentStyle": "tab",
+			"quoteStyle": "double"
+		},
+		"parser": { "tailwindDirectives": true }
+	},
 	"overrides": [
 		{
 			"includes": ["**/*.{ts,tsx}"],
