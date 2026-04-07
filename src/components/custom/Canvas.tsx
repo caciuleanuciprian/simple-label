@@ -1,5 +1,6 @@
 import React from "react";
 import { BoundingBoxOverlay } from "./overlays/BoundingBoxOverlay";
+import { Actions, type ActionsRef } from "./Actions";
 
 type CanvasProps = {
 	image: string;
@@ -28,9 +29,25 @@ export const Canvas = (props: CanvasProps) => {
 		};
 	}, [image, width, height]);
 
+	// TODO: Replace with Context for better state management
+
+	const actionsRef = React.useRef<ActionsRef>(null);
+
+	const clearAnnotations = () => {
+		actionsRef.current?.clearAnnotations();
+	};
+
+	const clearSelectedAnnotation = () => {
+		actionsRef.current?.clearSelectedAnnotation();
+	};
+
 	return (
 		<div style={{ width: width, height: height }} className="rounded relative">
-			<BoundingBoxOverlay width={width} height={height} />
+			<Actions
+				clearAnnotations={clearAnnotations}
+				clearSelectedAnnotation={clearSelectedAnnotation}
+			/>
+			<BoundingBoxOverlay ref={actionsRef} width={width} height={height} />
 			<canvas ref={canvasRef} className="w-full h-full relative" />
 		</div>
 	);

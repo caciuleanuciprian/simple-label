@@ -1,4 +1,7 @@
+import { ActionsProvider } from "@/providers/ActionsProvider";
 import { Canvas } from "./Canvas";
+import type { TODO } from "@/utils/general";
+import React from "react";
 
 type ImageContainerProps = {
 	image: string;
@@ -6,9 +9,29 @@ type ImageContainerProps = {
 
 export const ImageContainer = (props: ImageContainerProps) => {
 	const { image } = props;
+
+	const [selectedAnnotation, setSelectedAnnotation] =
+		React.useState<TODO | null>(null);
+	const [numOfAnnotations, setNumOfAnnotations] = React.useState<number | null>(
+		null,
+	);
+
+	const providerValues = React.useMemo(() => {
+		return {
+			annotations: {
+				selectedAnnotation,
+				setSelectedAnnotation,
+				numOfAnnotations,
+				setNumOfAnnotations,
+			},
+		};
+	}, [selectedAnnotation, numOfAnnotations]);
+
 	return (
 		<div className="bg-gray-300 p-2 ">
-			<Canvas image={image} />
+			<ActionsProvider value={providerValues}>
+				<Canvas image={image} />
+			</ActionsProvider>
 		</div>
 	);
 };

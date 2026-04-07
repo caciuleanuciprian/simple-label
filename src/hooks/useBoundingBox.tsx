@@ -1,11 +1,14 @@
 import React from "react";
+import { drawBox, drawBoxOverlay, drawBoxSelected } from "./utils";
+import { randomUUID } from "@/utils/general";
+import { useActions } from "@/providers/ActionsProvider";
 
 type UseBoundingBoxProps = {
 	canvasRef: React.RefObject<HTMLCanvasElement | null>;
 };
 
 type BoundingBox = {
-	id: number;
+	id: string;
 	x: number;
 	y: number;
 	width: number;
@@ -13,6 +16,7 @@ type BoundingBox = {
 };
 
 export const useBoundingBox = (props: UseBoundingBoxProps) => {
+	const actionsContext = useActions();
 	const { canvasRef } = props;
 	const [dragging, setDragging] = React.useState(false);
 	const [boundingBoxes, setBoundingBoxes] = React.useState<BoundingBox[]>([]);
@@ -20,103 +24,315 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 		BoundingBox,
 		"x" | "y"
 	> | null>(null);
+	const [selectedBoundingBox, setSelectedBoundingBox] =
+		React.useState<BoundingBox | null>(null);
 
-	React.useEffect(() => {
+	const clearAllCanvas = () => {
+		setSelectedBoundingBox(null);
+		setBoundingBoxes([]);
+		clearCanvas();
+	};
+
+	const clearSelectedAnnotation = () => {
+		if (!selectedBoundingBox) return;
+		setBoundingBoxes((prev) =>
+			prev.filter((box) => box.id !== selectedBoundingBox.id),
+		);
+		setSelectedBoundingBox(null);
+		redrawCanvas();
+	};
+
+	const clearCanvas = () => {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 		const context = canvas.getContext("2d");
 		if (!context) return;
-		const clearCanvas = () => {
-			context.clearRect(0, 0, canvas.width, canvas.height);
+		context.clearRect(0, 0, canvas.width, canvas.height);
+	};
+
+	const redrawCanvas = () => {
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const context = canvas.getContext("2d");
+		if (!context) return;
+		clearCanvas();
+
+		const filteredBoundingBoxes = boundingBoxes.filter(
+			(box) => box.id !== selectedBoundingBox?.id,
+		);
+
+		if (selectedBoundingBox) {
+			drawBoxSelected(context, selectedBoundingBox, "blue", 2);
+		}
+		filteredBoundingBoxes.forEach((box) => {
+			drawBox(context, box, "red", 2);
+		});
+	};
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Intended
+	React.useEffect(() => {
+		redrawCanvas();
+		actionsContext?.annotations.setNumOfAnnotations(boundingBoxes.length);
+		actionsContext?.annotations.setSelectedAnnotation(selectedBoundingBox);
+	}, [boundingBoxes, selectedBoundingBox]);
+
+	const handleDragCreateStart = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) return;
+		setDragging(true);
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		const startX = event.clientX - rect.left;
+		const startY = event.clientY - rect.top;
+		setDragStart({
+			x: startX,
+			y: startY,
+		});
+	};
+
+	const handleDragCreateEnd = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) return;
+		setDragging(false);
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		const endX = event.clientX - rect.left;
+		const endY = event.clientY - rect.top;
+		if (!dragStart) return;
+		const diff = {
+			x: endX > dragStart.x ? endX - dragStart.x : dragStart.x - endX,
+			y: endY > dragStart.y ? endY - dragStart.y : dragStart.y - endY,
 		};
-
-		const redrawCanvas = () => {
-			console.log("Redrawing canvas with bounding boxes:", boundingBoxes);
-			clearCanvas();
-
-			boundingBoxes.forEach(function (box) {
-				context.strokeStyle = "red";
-				context.lineWidth = 2;
-				context.strokeRect(box.x, box.y, box.width, box.height);
-			});
+		const boundingBox = {
+			id: randomUUID(),
+			x: dragStart.x > endX ? endX : dragStart.x,
+			y: dragStart.y > endY ? endY : dragStart.y,
+			width: diff.x,
+			height: diff.y,
 		};
+		if (boundingBox.width < 1 || boundingBox.height < 1) {
+			setDragStart(null);
+			return;
+		}
+		boundingBoxes.push(boundingBox);
+		setBoundingBoxes((prev) => [...prev, boundingBox]);
+		setDragStart(null);
+		redrawCanvas();
+	};
 
-		const handleDragStart = (event: MouseEvent) => {
-			console.log("Starting drag...");
-			setDragging(true);
-			const rect = canvas.getBoundingClientRect();
-			console.log("Canvas rect:", rect);
-			const startX = event.clientX - rect.left;
-			const startY = event.clientY - rect.top;
-			setDragStart({
-				x: startX,
-				y: startY,
-			});
+	const handleDragCreateOverlay = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) return;
+		if (!dragging || !dragStart) return;
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		const currentPos = {
+			x: event.clientX - rect.left,
+			y: event.clientY - rect.top,
 		};
-
-		const handleDragEnd = (event: MouseEvent) => {
-			console.log("Ending drag...", dragStart);
-			setDragging(false);
-			const rect = canvas.getBoundingClientRect();
-			const endX = event.clientX - rect.left;
-			const endY = event.clientY - rect.top;
-			if (!dragStart) return;
-			const diff = {
-				x: endX - dragStart.x,
-				y: endY - dragStart.y,
-			};
-			const boundingBox = {
-				id: boundingBoxes.length,
+		const diff = {
+			x: currentPos.x - dragStart.x,
+			y: currentPos.y - dragStart.y,
+		};
+		redrawCanvas();
+		const context = canvas.getContext("2d");
+		if (!context) return;
+		drawBoxOverlay(
+			context,
+			{
 				x: dragStart.x,
 				y: dragStart.y,
 				width: diff.x,
 				height: diff.y,
-			};
-			boundingBoxes.push(boundingBox);
-			setBoundingBoxes((prev) => [...prev, boundingBox]);
-			setDragStart(null);
-			redrawCanvas();
-		};
+			},
+			"red",
+			2,
+		);
+	};
 
-		const handleDragOverlay = (event: MouseEvent) => {
-			if (!dragging || !dragStart) return;
-			const rect = canvas.getBoundingClientRect();
-			const currentPos = {
-				x: event.clientX - rect.left,
-				y: event.clientY - rect.top,
-			};
-			const diff = {
-				x: currentPos.x - dragStart.x,
-				y: currentPos.y - dragStart.y,
-			};
-			redrawCanvas();
-			context.save();
-			context.beginPath();
-			context.lineWidth = 0.5;
-			context.setLineDash([7, 2]);
-			context.rect(dragStart.x, dragStart.y, diff.x, diff.y);
-			context.strokeStyle = "rgb(255, 82, 0)";
-			context.stroke();
-			context.restore();
-		};
+	const handleDragCreateOutside = (
+		_event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) return;
+		if (!dragging) return;
+		setDragging(false);
+		redrawCanvas();
+		setDragStart(null);
+	};
 
-		const handleDragOutside = (_event: MouseEvent) => {
-			console.log("Dragging outside...");
-			if (!dragging) return;
-			setDragging(false);
-			redrawCanvas();
-			setDragStart(null);
-		};
+	// BUG: If user drags box over another box, the other box will be selected.
+	const handleSelectBoundingBox = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		const clickX = event.clientX - rect.left;
+		const clickY = event.clientY - rect.top;
+		const selectedBox = boundingBoxes.find(
+			(box) =>
+				clickX >= box.x &&
+				clickX <= box.x + box.width &&
+				clickY >= box.y &&
+				clickY <= box.y + box.height,
+		);
+		if (selectedBox) {
+			setSelectedBoundingBox(selectedBox);
+		} else {
+			setSelectedBoundingBox(null);
+		}
+	};
 
-		canvas.addEventListener("mousedown", handleDragStart);
-		canvas.addEventListener("mouseup", handleDragEnd);
-		canvas.addEventListener("mousemove", handleDragOverlay);
-		canvas.addEventListener("mouseleave", handleDragOutside);
-		return () => {
-			canvas.removeEventListener("mousedown", handleDragStart);
-			canvas.removeEventListener("mouseup", handleDragEnd);
-			canvas.removeEventListener("mousemove", handleDragOverlay);
-			canvas.removeEventListener("mouseleave", handleDragOutside);
+	const isMouseOnSelectedBox = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (!selectedBoundingBox) return false;
+		const canvas = canvasRef.current;
+		if (!canvas) return false;
+		const rect = canvas.getBoundingClientRect();
+		const mouseX = event.clientX - rect.left;
+		const mouseY = event.clientY - rect.top;
+		return (
+			mouseX >= selectedBoundingBox.x &&
+			mouseX <= selectedBoundingBox.x + selectedBoundingBox.width &&
+			mouseY >= selectedBoundingBox.y &&
+			mouseY <= selectedBoundingBox.y + selectedBoundingBox.height
+		);
+	};
+
+	const handleDragSelectedStart = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (!selectedBoundingBox || !isMouseOnSelectedBox(event)) return;
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		const startX = event.clientX - rect.left;
+		const startY = event.clientY - rect.top;
+		setDragStart({
+			x: startX,
+			y: startY,
+		});
+	};
+
+	const handleDragSelectedEnd = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (!selectedBoundingBox || !dragStart) return;
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const rect = canvas.getBoundingClientRect();
+		const endX = event.clientX - rect.left;
+		const endY = event.clientY - rect.top;
+		const diff = {
+			x: endX - dragStart.x,
+			y: endY - dragStart.y,
 		};
-	}, [dragging, dragStart, canvasRef.current, boundingBoxes]);
+		const updatedBox = {
+			...selectedBoundingBox,
+			x: selectedBoundingBox.x + diff.x,
+			y: selectedBoundingBox.y + diff.y,
+		};
+		setBoundingBoxes((prev) =>
+			prev.map((box) => (box.id === selectedBoundingBox.id ? updatedBox : box)),
+		);
+		setSelectedBoundingBox(updatedBox);
+		setDragStart(null);
+	};
+
+	const handleDragSelectedOverlay = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (!selectedBoundingBox || !dragStart) return;
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const context = canvas.getContext("2d");
+		if (!context) return;
+		const rect = canvas.getBoundingClientRect();
+		const currentPos = {
+			x: event.clientX - rect.left,
+			y: event.clientY - rect.top,
+		};
+		const diff = {
+			x: currentPos.x - dragStart.x,
+			y: currentPos.y - dragStart.y,
+		};
+		redrawCanvas();
+		drawBoxOverlay(
+			context,
+			{
+				x: selectedBoundingBox.x + diff.x,
+				y: selectedBoundingBox.y + diff.y,
+				width: selectedBoundingBox.width,
+				height: selectedBoundingBox.height,
+			},
+			"blue",
+			2,
+		);
+	};
+
+	const handleDragSelectedOutside = (
+		_event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (!selectedBoundingBox) return;
+		setDragStart(null);
+		redrawCanvas();
+	};
+
+	const handleDragStart = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) {
+			handleDragSelectedStart(event);
+		} else {
+			handleDragCreateStart(event);
+		}
+	};
+
+	const handleDragEnd = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) {
+			handleDragSelectedEnd(event);
+		} else {
+			handleDragCreateEnd(event);
+		}
+	};
+
+	const handleDragOverlay = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) {
+			handleDragSelectedOverlay(event);
+		} else {
+			handleDragCreateOverlay(event);
+		}
+	};
+
+	const handleDragOutside = (
+		event: React.MouseEvent<HTMLCanvasElement, MouseEvent>,
+	) => {
+		if (selectedBoundingBox) {
+			handleDragSelectedOutside(event);
+		} else {
+			handleDragCreateOutside(event);
+		}
+	};
+
+	return {
+		handleDragStart,
+		handleDragEnd,
+		handleDragOverlay,
+		handleDragOutside,
+		handleSelectBoundingBox,
+		clearAll: clearAllCanvas,
+		clearSelected: clearSelectedAnnotation,
+		selectedBoundingBox,
+	};
 };
