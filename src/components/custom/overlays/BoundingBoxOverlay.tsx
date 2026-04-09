@@ -1,6 +1,7 @@
 import { useBoundingBox } from "@/hooks/useBoundingBox";
 import React from "react";
 import type { ActionsRef } from "../Actions";
+import { useConfig } from "@/providers/ConfigProvider";
 
 type BoundingBoxOverlayProps = {
 	width: number;
@@ -11,6 +12,7 @@ export const BoundingBoxOverlay = React.forwardRef<
 	ActionsRef,
 	BoundingBoxOverlayProps
 >((props, ref) => {
+	const { config, withDebug } = useConfig();
 	const { width, height } = props;
 	const overlayCanvasRef = React.useRef<HTMLCanvasElement>(null);
 
@@ -30,6 +32,8 @@ export const BoundingBoxOverlay = React.forwardRef<
 		clearSelected,
 	} = useBoundingBox({
 		canvasRef: overlayCanvasRef,
+		config,
+		withDebug,
 	});
 
 	React.useImperativeHandle(

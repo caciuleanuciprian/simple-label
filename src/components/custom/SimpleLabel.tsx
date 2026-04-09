@@ -1,17 +1,12 @@
-import type { Config } from "@/constants/config";
 import { ImageContainer, Tasks } from "@/components/custom";
 
-type SimpleLabelProps = {
-	image: string;
-	config: Config;
-};
+type SimpleLabelProps = {};
 
-export const SimpleLabel = (props: SimpleLabelProps) => {
-	const { image, config } = props;
+export const SimpleLabel = (_props: SimpleLabelProps) => {
 	return (
 		<div>
-			<ImageContainer image={image} />
-			<Tasks config={config} />
+			<ImageContainer />
+			<Tasks />
 		</div>
 	);
 };

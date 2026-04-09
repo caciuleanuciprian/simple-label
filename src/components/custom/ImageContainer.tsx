@@ -2,13 +2,10 @@ import { ActionsProvider } from "@/providers/ActionsProvider";
 import { Canvas } from "./Canvas";
 import type { TODO } from "@/utils/general";
 import React from "react";
+import { useConfig } from "@/providers/ConfigProvider";
 
-type ImageContainerProps = {
-	image: string;
-};
-
-export const ImageContainer = (props: ImageContainerProps) => {
-	const { image } = props;
+export const ImageContainer = () => {
+	const { image } = useConfig();
 
 	const [selectedAnnotation, setSelectedAnnotation] =
 		React.useState<TODO | null>(null);

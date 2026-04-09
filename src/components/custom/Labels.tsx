@@ -1,13 +1,10 @@
-import type { Config, TaskConfig } from "@/constants/config";
+import type { TaskConfig } from "@/constants/config";
 import { Badge } from "@/components/ui/badge";
 import React from "react";
+import { useConfig } from "@/providers/ConfigProvider";
 
-type TasksProps = {
-	config: Config;
-};
-
-export const Tasks = (props: TasksProps) => {
-	const { config } = props;
+export const Tasks = () => {
+	const { config } = useConfig();
 	return (
 		<div className="p-2">
 			{config.tasks.map((task) => (

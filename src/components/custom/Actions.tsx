@@ -15,7 +15,7 @@ export type ActionsRef = {
 
 // NOTE: Z-index of this component should be the highest.
 export const Actions = (props: ActionsProps) => {
-	const actionsContext = useActions();
+	const { annotations } = useActions();
 	const { clearAnnotations, clearSelectedAnnotation } = props;
 
 	return (
@@ -28,13 +28,13 @@ export const Actions = (props: ActionsProps) => {
 								event.stopPropagation();
 								clearAnnotations();
 							}}
-							disabled={actionsContext?.annotations.numOfAnnotations === 0}
+							disabled={annotations.numOfAnnotations === 0}
 						>
 							<Trash />
 						</Button>
 					}
 				/>
-				<TooltipContent>Clear all annotations</TooltipContent>
+				<TooltipContent>{`Clear ${annotations.numOfAnnotations} annotations`}</TooltipContent>
 			</Tooltip>
 			<Tooltip>
 				<TooltipTrigger
@@ -44,7 +44,7 @@ export const Actions = (props: ActionsProps) => {
 								event.stopPropagation();
 								clearSelectedAnnotation();
 							}}
-							disabled={!actionsContext?.annotations.selectedAnnotation}
+							disabled={!annotations.selectedAnnotation}
 						>
 							<Trash2 />
 						</Button>

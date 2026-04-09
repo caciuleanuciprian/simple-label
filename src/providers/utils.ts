@@ -2,7 +2,7 @@ import React from "react";
 
 type ProviderResult<T> = {
 	provider: React.FC<{ children: React.ReactNode; value: T | null }>;
-	useValue: () => T | null;
+	useValue: () => T;
 };
 
 export const createProvider = <T>(providerName: string): ProviderResult<T> => {

@@ -13,19 +13,32 @@ export type LabelConfig = {
 	color: string;
 };
 
+export type ClassificationTaskValue = string;
+
+export type ObjectDetectionTaskValue = {
+	id: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+};
+
+export type TaskValues = ClassificationTaskValue | ObjectDetectionTaskValue;
+
 export type TaskConfig = {
 	id: string;
 	name: string;
 	description: string;
 	type: TaskType;
 	labels: LabelConfig[];
+	values: TaskValues[];
 };
 
 export type Config = {
 	tasks: TaskConfig[];
 };
 
-export const config: Config = {
+export const exampleConfig: Config = {
 	tasks: [
 		{
 			id: "task0",
@@ -47,6 +60,48 @@ export const config: Config = {
 					id: "label2",
 					name: "Cat",
 					color: "#0000FF",
+				},
+			],
+			values: ["Frog"],
+		},
+		{
+			id: "task1",
+			name: "Object Detection",
+			description: "Detect objects in the image",
+			type: "OBJECT_DETECTION",
+			labels: [
+				{
+					id: "obj-det-0",
+					name: "Car",
+					color: "#FF0000",
+				},
+				{
+					id: "obj-det-1",
+					name: "Person",
+					color: "#00FF00",
+				},
+			],
+			values: [
+				{
+					id: "obj-det-0",
+					x: 50,
+					y: 50,
+					width: 100,
+					height: 100,
+				},
+				{
+					id: "obj-det-1",
+					x: 200,
+					y: 200,
+					width: 100,
+					height: 100,
+				},
+				{
+					id: "obj-det-2",
+					x: 350,
+					y: 350,
+					width: 100,
+					height: 100,
 				},
 			],
 		},

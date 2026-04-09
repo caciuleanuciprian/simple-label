@@ -1,31 +1,46 @@
 import React from "react";
-import { drawBox, drawBoxOverlay, drawBoxSelected } from "./utils";
+import {
+	drawBox,
+	drawBoxOverlay,
+	drawBoxSelected,
+	loadConfigAnnotations,
+} from "./utils";
 import { randomUUID } from "@/utils/general";
 import { useActions } from "@/providers/ActionsProvider";
+import type { Config, ObjectDetectionTaskValue } from "@/constants/config";
 
 type UseBoundingBoxProps = {
 	canvasRef: React.RefObject<HTMLCanvasElement | null>;
+	config: Config;
+	withDebug?: boolean;
 };
 
-type BoundingBox = {
-	id: string;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-};
+// type BoundingBox = {
+// 	id: string;
+// 	x: number;
+// 	y: number;
+// 	width: number;
+// 	height: number;
+// };
 
 export const useBoundingBox = (props: UseBoundingBoxProps) => {
-	const actionsContext = useActions();
-	const { canvasRef } = props;
+	const { annotations } = useActions();
+	const { canvasRef, config, withDebug } = props;
 	const [dragging, setDragging] = React.useState(false);
-	const [boundingBoxes, setBoundingBoxes] = React.useState<BoundingBox[]>([]);
+	const [boundingBoxes, setBoundingBoxes] = React.useState<
+		ObjectDetectionTaskValue[]
+	>(
+		loadConfigAnnotations(
+			config,
+			"OBJECT_DETECTION",
+		) as ObjectDetectionTaskValue[],
+	);
 	const [dragStart, setDragStart] = React.useState<Pick<
-		BoundingBox,
+		ObjectDetectionTaskValue,
 		"x" | "y"
 	> | null>(null);
 	const [selectedBoundingBox, setSelectedBoundingBox] =
-		React.useState<BoundingBox | null>(null);
+		React.useState<ObjectDetectionTaskValue | null>(null);
 
 	const clearAllCanvas = () => {
 		setSelectedBoundingBox(null);
@@ -62,18 +77,18 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 		);
 
 		if (selectedBoundingBox) {
-			drawBoxSelected(context, selectedBoundingBox, "blue", 2);
+			drawBoxSelected(context, selectedBoundingBox, "blue", 2, withDebug);
 		}
 		filteredBoundingBoxes.forEach((box) => {
-			drawBox(context, box, "red", 2);
+			drawBox(context, box, "red", 2, withDebug);
 		});
 	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: Intended
 	React.useEffect(() => {
 		redrawCanvas();
-		actionsContext?.annotations.setNumOfAnnotations(boundingBoxes.length);
-		actionsContext?.annotations.setSelectedAnnotation(selectedBoundingBox);
+		annotations.setNumOfAnnotations(boundingBoxes.length);
+		annotations.setSelectedAnnotation(selectedBoundingBox);
 	}, [boundingBoxes, selectedBoundingBox]);
 
 	const handleDragCreateStart = (
@@ -118,7 +133,6 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 			setDragStart(null);
 			return;
 		}
-		boundingBoxes.push(boundingBox);
 		setBoundingBoxes((prev) => [...prev, boundingBox]);
 		setDragStart(null);
 		redrawCanvas();
@@ -153,6 +167,7 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 			},
 			"red",
 			2,
+			withDebug,
 		);
 	};
 
@@ -274,6 +289,7 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 			},
 			"blue",
 			2,
+			withDebug,
 		);
 	};
 
