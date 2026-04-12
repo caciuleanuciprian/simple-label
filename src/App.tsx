@@ -1,4 +1,4 @@
-import { SimpleLabel } from "@/components/custom/SimpleLabel";
+import { SimpleLabel } from "@/components/custom";
 
 function App() {
 	return <SimpleLabel />;

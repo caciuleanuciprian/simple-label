@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { Trash, Trash2 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { useActions } from "@/providers/ActionsProvider";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui";
+import { useAnnotations } from "@/providers/AnnotationsProvider";
 
 type ActionsProps = {
 	clearAnnotations: () => void;
@@ -14,8 +14,8 @@ export type ActionsRef = {
 };
 
 // NOTE: Z-index of this component should be the highest.
-export const Actions = (props: ActionsProps) => {
-	const { annotations } = useActions();
+export const CanvasActions = (props: ActionsProps) => {
+	const { annotations, selectedAnnotation } = useAnnotations();
 	const { clearAnnotations, clearSelectedAnnotation } = props;
 
 	return (
@@ -28,13 +28,13 @@ export const Actions = (props: ActionsProps) => {
 								event.stopPropagation();
 								clearAnnotations();
 							}}
-							disabled={annotations.numOfAnnotations === 0}
+							disabled={!annotations || annotations.length === 0}
 						>
 							<Trash />
 						</Button>
 					}
 				/>
-				<TooltipContent>{`Clear ${annotations.numOfAnnotations} annotations`}</TooltipContent>
+				<TooltipContent>{`Clear ${annotations ? annotations.length : 0} annotations`}</TooltipContent>
 			</Tooltip>
 			<Tooltip>
 				<TooltipTrigger
@@ -44,7 +44,7 @@ export const Actions = (props: ActionsProps) => {
 								event.stopPropagation();
 								clearSelectedAnnotation();
 							}}
-							disabled={!annotations.selectedAnnotation}
+							disabled={!selectedAnnotation}
 						>
 							<Trash2 />
 						</Button>

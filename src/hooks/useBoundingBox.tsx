@@ -6,8 +6,8 @@ import {
 	loadConfigAnnotations,
 } from "./utils";
 import { randomUUID } from "@/utils/general";
-import { useActions } from "@/providers/ActionsProvider";
 import type { Config, ObjectDetectionTaskValue } from "@/constants/config";
+import { useAnnotations } from "@/providers/AnnotationsProvider";
 
 type UseBoundingBoxProps = {
 	canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -15,16 +15,8 @@ type UseBoundingBoxProps = {
 	withDebug?: boolean;
 };
 
-// type BoundingBox = {
-// 	id: string;
-// 	x: number;
-// 	y: number;
-// 	width: number;
-// 	height: number;
-// };
-
 export const useBoundingBox = (props: UseBoundingBoxProps) => {
-	const { annotations } = useActions();
+	const { setAnnotations, setSelectedAnnotation } = useAnnotations();
 	const { canvasRef, config, withDebug } = props;
 	const [dragging, setDragging] = React.useState(false);
 	const [boundingBoxes, setBoundingBoxes] = React.useState<
@@ -87,8 +79,8 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: Intended
 	React.useEffect(() => {
 		redrawCanvas();
-		annotations.setNumOfAnnotations(boundingBoxes.length);
-		annotations.setSelectedAnnotation(selectedBoundingBox);
+		setAnnotations(boundingBoxes);
+		setSelectedAnnotation(selectedBoundingBox);
 	}, [boundingBoxes, selectedBoundingBox]);
 
 	const handleDragCreateStart = (
@@ -122,12 +114,13 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 			x: endX > dragStart.x ? endX - dragStart.x : dragStart.x - endX,
 			y: endY > dragStart.y ? endY - dragStart.y : dragStart.y - endY,
 		};
-		const boundingBox = {
+		const boundingBox: ObjectDetectionTaskValue = {
 			id: randomUUID(),
 			x: dragStart.x > endX ? endX : dragStart.x,
 			y: dragStart.y > endY ? endY : dragStart.y,
 			width: diff.x,
 			height: diff.y,
+			type: "bounding_box",
 		};
 		if (boundingBox.width < 1 || boundingBox.height < 1) {
 			setDragStart(null);

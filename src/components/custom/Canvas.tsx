@@ -1,6 +1,6 @@
 import React from "react";
 import { BoundingBoxOverlay } from "./overlays/BoundingBoxOverlay";
-import { Actions, type ActionsRef } from "./Actions";
+import { CanvasActions, type ActionsRef } from "./CanvasActions";
 
 type CanvasProps = {
 	image: string;
@@ -43,7 +43,7 @@ export const Canvas = (props: CanvasProps) => {
 
 	return (
 		<div style={{ width: width, height: height }} className="rounded relative">
-			<Actions
+			<CanvasActions
 				clearAnnotations={clearAnnotations}
 				clearSelectedAnnotation={clearSelectedAnnotation}
 			/>

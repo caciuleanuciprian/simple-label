@@ -13,7 +13,10 @@ export type LabelConfig = {
 	color: string;
 };
 
-export type ClassificationTaskValue = string;
+export type ClassificationTaskValue = {
+	choices: string[];
+	type: "choices";
+};
 
 export type ObjectDetectionTaskValue = {
 	id: string;
@@ -21,6 +24,7 @@ export type ObjectDetectionTaskValue = {
 	y: number;
 	width: number;
 	height: number;
+	type: "bounding_box";
 };
 
 export type TaskValues = ClassificationTaskValue | ObjectDetectionTaskValue;
@@ -62,7 +66,12 @@ export const exampleConfig: Config = {
 					color: "#0000FF",
 				},
 			],
-			values: ["Frog"],
+			values: [
+				{
+					choices: ["Frog"],
+					type: "choices",
+				},
+			],
 		},
 		{
 			id: "task1",
@@ -88,6 +97,7 @@ export const exampleConfig: Config = {
 					y: 50,
 					width: 100,
 					height: 100,
+					type: "bounding_box",
 				},
 				{
 					id: "obj-det-1",
@@ -95,6 +105,7 @@ export const exampleConfig: Config = {
 					y: 200,
 					width: 100,
 					height: 100,
+					type: "bounding_box",
 				},
 				{
 					id: "obj-det-2",
@@ -102,6 +113,7 @@ export const exampleConfig: Config = {
 					y: 350,
 					width: 100,
 					height: 100,
+					type: "bounding_box",
 				},
 			],
 		},

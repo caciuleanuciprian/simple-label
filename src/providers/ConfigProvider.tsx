@@ -4,6 +4,7 @@ import { createProvider } from "./utils";
 type ConfigType = {
 	image: string;
 	config: Config;
+	actions?: React.ReactNode;
 	withDebug?: boolean;
 };
 

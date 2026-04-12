@@ -1,6 +1,6 @@
-import { useBoundingBox } from "@/hooks/useBoundingBox";
 import React from "react";
-import type { ActionsRef } from "../Actions";
+import type { ActionsRef } from "../CanvasActions";
+import { useBoundingBox } from "@/hooks";
 import { useConfig } from "@/providers/ConfigProvider";
 
 type BoundingBoxOverlayProps = {

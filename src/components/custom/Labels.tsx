@@ -1,5 +1,5 @@
 import type { TaskConfig } from "@/constants/config";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui";
 import React from "react";
 import { useConfig } from "@/providers/ConfigProvider";
 

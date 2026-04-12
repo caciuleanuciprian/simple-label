@@ -1,7 +1,7 @@
 import { createProvider } from "./utils";
 import type { TaskValues } from "@/constants/config";
 
-type AnnotationsActions = {
+type AnnotationsProviderValue = {
 	selectedAnnotation: TaskValues | null;
 	setSelectedAnnotation: React.Dispatch<
 		React.SetStateAction<TaskValues | null>
@@ -10,9 +10,5 @@ type AnnotationsActions = {
 	setAnnotations: React.Dispatch<React.SetStateAction<TaskValues[] | null>>;
 };
 
-type ActionsProviderValue = {
-	annotations: AnnotationsActions;
-};
-
-export const { provider: ActionsProvider, useValue: useActions } =
-	createProvider<ActionsProviderValue>("ActionsProvider");
+export const { provider: AnnotationsProvider, useValue: useAnnotations } =
+	createProvider<AnnotationsProviderValue>("AnnotationsProvider");
