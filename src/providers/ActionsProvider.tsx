@@ -1,5 +1,5 @@
+import type { TaskValues } from "@/constants/task";
 import { createProvider } from "./utils";
-import type { TaskValues } from "@/constants/config";
 
 type AnnotationsActions = {
 	selectedAnnotation: TaskValues | null;

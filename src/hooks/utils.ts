@@ -1,4 +1,5 @@
-import type { Config, TaskType } from "@/constants/config";
+import type { Config } from "@/constants/config";
+import type { TaskType } from "@/constants/task";
 
 const DEBUG_FONT_SIZE = 12;
 

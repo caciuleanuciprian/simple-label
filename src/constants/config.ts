@@ -1,42 +1,4 @@
-export type TaskType =
-	| "CLASSIFICATION"
-	| "OBJECT_DETECTION"
-	| "SEMANTIC_SEGMENTATION"
-	| "KEYPOINTS"
-	| "OCR"
-	| "INSTANCE_SEGMENTATION"
-	| "KEYPOINTS_DETECTION";
-
-export type LabelConfig = {
-	id: string;
-	name: string;
-	color: string;
-};
-
-export type ClassificationTaskValue = {
-	choices: string[];
-	type: "choices";
-};
-
-export type ObjectDetectionTaskValue = {
-	id: string;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	type: "bounding_box";
-};
-
-export type TaskValues = ClassificationTaskValue | ObjectDetectionTaskValue;
-
-export type TaskConfig = {
-	id: string;
-	name: string;
-	description: string;
-	type: TaskType;
-	labels: LabelConfig[];
-	values: TaskValues[];
-};
+import type { TaskConfig } from "./task";
 
 export type Config = {
 	tasks: TaskConfig[];
@@ -68,6 +30,7 @@ export const exampleConfig: Config = {
 			],
 			values: [
 				{
+					id: "classification-0",
 					choices: ["Frog"],
 					type: "choices",
 				},

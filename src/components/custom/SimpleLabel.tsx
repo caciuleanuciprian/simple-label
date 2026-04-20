@@ -1,5 +1,5 @@
 import { ImageContainer, SideMenu, Tasks } from "@/components/custom";
-import type { TaskValues } from "@/constants/config";
+import type { TaskValues } from "@/constants/task";
 import { AnnotationsProvider } from "@/providers/AnnotationsProvider";
 import React from "react";
 

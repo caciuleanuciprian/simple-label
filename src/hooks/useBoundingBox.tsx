@@ -6,8 +6,9 @@ import {
 	loadConfigAnnotations,
 } from "./utils";
 import { randomUUID } from "@/utils/general";
-import type { Config, ObjectDetectionTaskValue } from "@/constants/config";
+import type { Config } from "@/constants/config";
 import { useAnnotations } from "@/providers/AnnotationsProvider";
+import type { ObjectDetectionTaskValue } from "@/constants/task";
 
 type UseBoundingBoxProps = {
 	canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -16,7 +17,8 @@ type UseBoundingBoxProps = {
 };
 
 export const useBoundingBox = (props: UseBoundingBoxProps) => {
-	const { setAnnotations, setSelectedAnnotation } = useAnnotations();
+	const { setAnnotations, setSelectedAnnotation, selectedAnnotation } =
+		useAnnotations();
 	const { canvasRef, config, withDebug } = props;
 	const [dragging, setDragging] = React.useState(false);
 	const [boundingBoxes, setBoundingBoxes] = React.useState<
@@ -33,6 +35,12 @@ export const useBoundingBox = (props: UseBoundingBoxProps) => {
 	> | null>(null);
 	const [selectedBoundingBox, setSelectedBoundingBox] =
 		React.useState<ObjectDetectionTaskValue | null>(null);
+
+	React.useEffect(() => {
+		if (selectedAnnotation && selectedAnnotation.type === "bounding_box") {
+			setSelectedBoundingBox(selectedAnnotation);
+		}
+	}, [selectedAnnotation]);
 
 	const clearAllCanvas = () => {
 		setSelectedBoundingBox(null);
